@@ -1,0 +1,28 @@
+syntax = "proto3";
+option go_package = "github.com/efferbach92-cmyk/ChitChat-DISYS/grpc";
+
+enum EventType {
+    UNKNOWN = 0; 
+    JOIN = 1;
+    MESSAGE = 2; 
+    LEAVE = 3;
+    ERROR = 4; 
+}
+
+message ClientMessage {
+    EventType type = 1; 
+    string name = 2; 
+    string content = 3; 
+}
+
+message ChatMessage {
+    EventType type = 1;
+    string content = 2; 
+    int64 logical_timestamp = 3; 
+}
+
+service ChitChat {
+
+rpc Chat(stream ClientMessage) returns (stream ChatMessage); 
+
+}
