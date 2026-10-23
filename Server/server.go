@@ -1,1 +1,133 @@
 package main
+
+import (
+	"io"
+	"log"
+	"net"
+	"sync"
+	"unicode/utf8"
+
+	proto "github.com/efferbach92-cmyk/ChitChat-DISYS/grpc"
+	"google.golang.org/grpc"
+)
+
+type ChitChatServer struct {
+	proto.UnimplementedChitChatServer
+	Users map[string]chan *proto.ChatMessage
+	mu    sync.Mutex
+}
+
+func main() {
+	server := &ChitChatServer{Users: make(map[string]chan *proto.ChatMessage)}
+
+	server.start_server()
+}
+
+func (s *ChitChatServer) start_server() {
+	grpcServer := grpc.NewServer()
+	listener, err := net.Listen("tcp", ":5050")
+	if err != nil {
+		log.Fatalf("Server did not start: %v", err)
+		//%v indsætter den konkrete fejl og fejlen bliver logget
+	}
+
+	proto.RegisterChitChatServer(grpcServer, s)
+
+	log.Printf("[Server] event=STARTUP port=5050")
+
+	err = grpcServer.Serve(listener)
+
+	if err != nil {
+		log.Fatalf("Server did not start: %v", err)
+	}
+}
+
+func (s *ChitChatServer) Chat(stream proto.ChitChat_ChatServer) error {
+	var name string
+	var sendChannel chan *proto.ChatMessage
+
+	for {
+		in, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+
+		switch in.GetType() {
+
+		case proto.EventType_JOIN:
+
+			name = in.GetName()
+			sendChannel = make(chan *proto.ChatMessage, 10)
+			s.mu.Lock()
+			s.Users[name] = sendChannel
+			s.mu.Unlock()
+			go sendServerMessages(stream, sendChannel)
+
+			joinMessage := &proto.ChatMessage{
+				Type:    proto.EventType_JOIN,
+				Content: "User: " + name + " joined the chat",
+			}
+			s.mu.Lock()
+			for _, sendChannel := range s.Users {
+				sendChannel <- joinMessage
+			}
+			s.mu.Unlock()
+
+		case proto.EventType_MESSAGE:
+
+			message := in.GetContent()
+
+			if !utf8.ValidString(message) || utf8.RuneCountInString(message) > 128 {
+				sendChannel <- &proto.ChatMessage{
+					Type:    proto.EventType_ERROR,
+					Content: "Invalid message. Maximum 128 characters.",
+				}
+				continue
+			}
+
+			chatMessage := &proto.ChatMessage{
+				Type:    proto.EventType_MESSAGE,
+				Content: message,
+			}
+			s.mu.Lock()
+			for _, sendChannel := range s.Users {
+				sendChannel <- chatMessage
+			}
+			s.mu.Unlock()
+
+		case proto.EventType_LEAVE:
+
+			s.mu.Lock()
+			delete(s.Users, name)
+			s.mu.Unlock()
+			close(sendChannel)
+
+			leaveMessage := &proto.ChatMessage{
+				Type:    proto.EventType_LEAVE,
+				Content: "User: " + name + " has left the chat",
+			}
+
+			s.mu.Lock()
+			for _, sendChannel := range s.Users {
+				sendChannel <- leaveMessage
+			}
+			s.mu.Unlock()
+			return nil
+
+		default:
+
+		}
+	}
+}
+
+// sender beskeder fra serveren til brugeren.
+func sendServerMessages(stream proto.ChitChat_ChatServer, sendChannel chan *proto.ChatMessage) {
+	for message := range sendChannel {
+		if err := stream.Send(message); err != nil {
+			return
+		}
+	}
+}
