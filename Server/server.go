@@ -60,8 +60,17 @@ func (s *ChitChatServer) Chat(stream proto.ChitChat_ChatServer) error {
 		case proto.EventType_JOIN:
 
 			name = in.GetName()
-			sendChannel = make(chan *proto.ChatMessage, 10)
 			s.mu.Lock()
+
+			if _, exists := s.Users[name]; exists || name == "" {
+				s.mu.Unlock()
+				return stream.Send(&proto.ChatMessage{
+					Type:    proto.EventType_ERROR,
+					Content: "Username already exists or is empty",
+				})
+			}
+
+			sendChannel = make(chan *proto.ChatMessage, 10)
 			s.Users[name] = sendChannel
 			s.mu.Unlock()
 			go sendServerMessages(stream, sendChannel)
@@ -90,7 +99,7 @@ func (s *ChitChatServer) Chat(stream proto.ChitChat_ChatServer) error {
 
 			chatMessage := &proto.ChatMessage{
 				Type:    proto.EventType_MESSAGE,
-				Content: message,
+				Content: name + ": " + message,
 			}
 			s.mu.Lock()
 			for _, sendChannel := range s.Users {

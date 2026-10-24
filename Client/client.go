@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"os"
 	"os/signal"
 	"strings"
@@ -42,7 +43,7 @@ func (c *LamportClock) Update(received int64) int64 {
 }
 
 func main() {
-	name := flag.String("name", "anonymous", "your name in the chat")
+	name := flag.String("name", fmt.Sprintf("anonymous%d", rand.Intn(9000)+1000), "your name in the chat")
 	addr := flag.String("addr", "localhost:5050", "server address")
 	flag.Parse()
 
@@ -88,7 +89,7 @@ func main() {
 				return
 			}
 			local := clock.Update(msg.GetLogicalTimestamp())
-			fmt.Printf("[L=%d] %s\n", msg.GetLogicalTimestamp(), msg.GetContent())
+			fmt.Printf("\n[L=%d] %s\n", msg.GetLogicalTimestamp(), msg.GetContent())
 			logger.Printf("[Client %s] event=DELIVER type=%s lamport=%d local=%d content=%q",
 				*name, msg.GetType(), msg.GetLogicalTimestamp(), local, msg.GetContent())
 		}
