@@ -25,11 +25,16 @@ func main() {
 }
 
 func (s *ChitChatServer) start_server() {
+	 // logs skal ligge i repo og appendix. Det er et krav.
+	 // O_APPend bevarer gamle logs ved restart.
 	f, err := os.OpenFile("server.log", os.O_WRONLY | os.O_CREATE | os.O_APPEND, 0644)
 	if err !=nil {
 		log.Fatalf("dang can't open log file: %v",err)
 	}
 	defer f.Close()
+
+	// MuliWriter sender alt log.print klade til term og fil.
+	// hvilket betyder at vi ikke skal ændre de eksisterende log linjer.
 	log.SetOutput(io.MultiWriter(os.Stdout, f))
 	
 	grpcServer := grpc.NewServer()
@@ -81,6 +86,8 @@ func (s *ChitChatServer) Chat(stream proto.ChitChat_ChatServer) error {
 			sendChannel = make(chan *proto.ChatMessage, 10)
 			s.Users[name] = sendChannel
 			s.mu.Unlock()
+			// tilføj her lamport=%d på server her.
+			log.Printf("[Server] event=CLIENT_CONNECT client=%s", name)
 			go sendServerMessages(stream, sendChannel)
 
 			joinMessage := &proto.ChatMessage{
@@ -109,9 +116,14 @@ func (s *ChitChatServer) Chat(stream proto.ChitChat_ChatServer) error {
 				Type:    proto.EventType_MESSAGE,
 				Content: name + ": " + message,
 			}
+
+			// Publish logs en gang når modtager besked
+			// Deliver logs en gang pr. modtager. altså 3 clients = 3 linjer
+			log.Printf("[Server] event=PUBLISH client=%s content=%q", name, message)
 			s.mu.Lock()
-			for _, sendChannel := range s.Users {
+			for to, sendChannel := range s.Users {
 				sendChannel <- chatMessage
+				log.Printf("[Server] event=DELIVER to=%s from=%s, content=%q", to, name, message)
 			}
 			s.mu.Unlock()
 
@@ -121,6 +133,7 @@ func (s *ChitChatServer) Chat(stream proto.ChitChat_ChatServer) error {
 			delete(s.Users, name)
 			s.mu.Unlock()
 			close(sendChannel)
+			
 
 			leaveMessage := &proto.ChatMessage{
 				Type:    proto.EventType_LEAVE,
