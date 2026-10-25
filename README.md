@@ -1,7 +1,7 @@
 # ChitChat-DISYS
  Mandatory Activity 3 - Distributed Systems, IT University of Copenhagen
 
- ChitChat is a distributed chat application implemented i Go usen gRPC and Protocol Buffers. 
+ ChitChat is a distributed chat application implemented i Go using gRPC and Protocol Buffers. 
  Multiple clients can join, exchange messages, and leave a shared chat session. 
 
  Requirements: 
