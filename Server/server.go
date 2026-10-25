@@ -6,6 +6,7 @@ import (
 	"net"
 	"sync"
 	"unicode/utf8"
+	"os"
 
 	proto "github.com/efferbach92-cmyk/ChitChat-DISYS/grpc"
 	"google.golang.org/grpc"
@@ -24,6 +25,13 @@ func main() {
 }
 
 func (s *ChitChatServer) start_server() {
+	f, err := os.OpenFile("server.log", os.O_WRONLY | os.O_CREATE | os.O_APPEND, 0644)
+	if err !=nil {
+		log.Fatalf("dang can't open log file: %v",err)
+	}
+	defer f.Close()
+	log.SetOutput(io.MultiWriter(os.Stdout, f))
+	
 	grpcServer := grpc.NewServer()
 	listener, err := net.Listen("tcp", ":5050")
 	if err != nil {
