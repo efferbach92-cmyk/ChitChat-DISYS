@@ -73,6 +73,9 @@ func (s *ChitChatServer) Chat(stream proto.ChitChat_ChatServer) error {
 			sendChannel = make(chan *proto.ChatMessage, 10)
 			s.Users[name] = sendChannel
 			s.mu.Unlock()
+
+			defer s.cleanup(name, sendChannel)
+
 			go sendServerMessages(stream, sendChannel)
 
 			joinMessage := &proto.ChatMessage{
@@ -108,26 +111,7 @@ func (s *ChitChatServer) Chat(stream proto.ChitChat_ChatServer) error {
 			s.mu.Unlock()
 
 		case proto.EventType_LEAVE:
-
-			s.mu.Lock()
-			delete(s.Users, name)
-			s.mu.Unlock()
-			close(sendChannel)
-
-			leaveMessage := &proto.ChatMessage{
-				Type:    proto.EventType_LEAVE,
-				Content: "User: " + name + " has left the chat",
-			}
-
-			s.mu.Lock()
-			for _, sendChannel := range s.Users {
-				sendChannel <- leaveMessage
-			}
-			s.mu.Unlock()
 			return nil
-
-		default:
-
 		}
 	}
 }
@@ -139,4 +123,19 @@ func sendServerMessages(stream proto.ChitChat_ChatServer, sendChannel chan *prot
 			return
 		}
 	}
+}
+
+func (s *ChitChatServer) cleanup(name string, sendChannel chan *proto.ChatMessage) {
+	s.mu.Lock()
+	delete(s.Users, name)
+	close(sendChannel)
+
+	leaveMessage := &proto.ChatMessage{
+		Type:    proto.EventType_LEAVE,
+		Content: "User: " + name + " has left the chat",
+	}
+	for _, sendChannel := range s.Users {
+		sendChannel <- leaveMessage
+	}
+	s.mu.Unlock()
 }
