@@ -123,7 +123,7 @@ func (s *ChitChatServer) Chat(stream proto.ChitChat_ChatServer) error {
 			s.mu.Lock()
 			for to, sendChannel := range s.Users {
 				sendChannel <- chatMessage
-				log.Printf("[Server] event=DELIVER to=%s from=%s, content=%q", to, name, message)
+				log.Printf("[Server] event=DELIVER to=%s from=%s content=%q", to, name, message)
 			}
 			s.mu.Unlock()
 
@@ -133,6 +133,7 @@ func (s *ChitChatServer) Chat(stream proto.ChitChat_ChatServer) error {
 			delete(s.Users, name)
 			s.mu.Unlock()
 			close(sendChannel)
+			log.Printf("[Server] event=CLIENT_DISCONNECT client=%s", name)
 			
 
 			leaveMessage := &proto.ChatMessage{
