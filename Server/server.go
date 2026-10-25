@@ -88,6 +88,9 @@ func (s *ChitChatServer) Chat(stream proto.ChitChat_ChatServer) error {
 			s.mu.Unlock()
 			// tilføj her lamport=%d på server her.
 			log.Printf("[Server] event=CLIENT_CONNECT client=%s", name)
+
+			defer s.cleanup(name, sendChannel)
+	
 			go sendServerMessages(stream, sendChannel)
 
 			joinMessage := &proto.ChatMessage{
@@ -128,28 +131,7 @@ func (s *ChitChatServer) Chat(stream proto.ChitChat_ChatServer) error {
 			s.mu.Unlock()
 
 		case proto.EventType_LEAVE:
-
-			s.mu.Lock()
-			delete(s.Users, name)
-			s.mu.Unlock()
-			close(sendChannel)
-			log.Printf("[Server] event=CLIENT_DISCONNECT client=%s", name)
-			
-
-			leaveMessage := &proto.ChatMessage{
-				Type:    proto.EventType_LEAVE,
-				Content: "User: " + name + " has left the chat",
-			}
-
-			s.mu.Lock()
-			for _, sendChannel := range s.Users {
-				sendChannel <- leaveMessage
-			}
-			s.mu.Unlock()
 			return nil
-
-		default:
-
 		}
 	}
 }
@@ -161,4 +143,26 @@ func sendServerMessages(stream proto.ChitChat_ChatServer, sendChannel chan *prot
 			return
 		}
 	}
+}
+
+func (s *ChitChatServer) cleanup(name string, sendChannel chan *proto.ChatMessage) {
+	s.mu.Lock()
+	delete(s.Users, name)
+	close(sendChannel)
+
+	// FLYTTET: CLIENT_DISCONNECT lå før i LEAVE-casen. Her logges den uanset
+	// hvordan klienten forsvinder (LEAVE, EOF eller crash).
+	log.Printf("[Server] event=CLIENT_DISCONNECT client=%s", name)
+
+	leaveMessage := &proto.ChatMessage{
+		Type:    proto.EventType_LEAVE,
+		Content: "User: " + name + " has left the chat",
+	}
+
+	// RETTET: "Pirntf" -> "Printf" og "clients=%" -> "client=%s"
+	log.Printf("[Server] event=BROADCAST_LEAVE client=%s", name)
+	for _, sendChannel := range s.Users {
+		sendChannel <- leaveMessage
+	}
+	s.mu.Unlock()
 }
