@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -18,6 +19,7 @@ type ChitChatServer struct {
 	proto.UnimplementedChitChatServer
 	Users map[string]*Client
 	mu    sync.Mutex
+	clock LamportClock
 }
 
 type Client struct {
@@ -71,7 +73,7 @@ func (s *ChitChatServer) start_server() {
 
 	go func() {
 		<-stop // her venter, indtil Ctrl+C trykkes
-		log.Printf("[Server] event=SHUTDOWN port=5050") //logger luk til term og server log
+		log.Printf("[Server] event=SHUTDOWN port=5050 lamport=%d", s.clock.Now()) //logger luk til term og server log
 
 		grpcServer.Stop() // lukker serv, så return uden fejl.
 	}() // kører den
@@ -120,6 +122,8 @@ func (s *ChitChatServer) Chat(stream proto.ChitChat_ChatServer) error {
 			return err
 		}
 
+		received := s.clock.Update(in.GetLogicalTimestamp())
+
 		switch in.GetType() {
 
 		case proto.EventType_JOIN:
@@ -129,8 +133,9 @@ func (s *ChitChatServer) Chat(stream proto.ChitChat_ChatServer) error {
 			if _, exists := s.Users[name]; exists || name == "" {
 				s.mu.Unlock()
 				return stream.Send(&proto.ChatMessage{
-					Type:    proto.EventType_ERROR,
-					Content: "Username already exists or is empty",
+					Type:             proto.EventType_ERROR,
+					Content:          "Username already exists or is empty",
+					LogicalTimestamp: s.clock.Tick(),
 				})
 			}
 
@@ -141,19 +146,20 @@ func (s *ChitChatServer) Chat(stream proto.ChitChat_ChatServer) error {
 				disconnectChannel: disconnectChannel,
 			}
 			s.mu.Unlock()
-			// tilføj her lamport=%d på server her.
-			log.Printf("[Server] event=CLIENT_CONNECT client=%s", name)
+			log.Printf("[Server] event=CLIENT_CONNECT client=%s lamport=%d", name, received)
 
 			defer s.cleanup(name, sendChannel)
 	
 			go sendServerMessages(stream, name, sendChannel)
 
-			joinMessage := &proto.ChatMessage{
-				Type:    proto.EventType_JOIN,
-				Content: "User: " + name + " joined the chat",
-			}
-			log.Printf("[Server] event=BROADCAST_JOIN client=%s", name)
 			s.mu.Lock()
+			L := s.clock.Tick()
+			joinMessage := &proto.ChatMessage{
+				Type:             proto.EventType_JOIN,
+				Content:          fmt.Sprintf("Participant %s joined Chit Chat at logical time %d", name, L),
+				LogicalTimestamp: L,
+			}
+			log.Printf("[Server] event=BROADCAST_JOIN client=%s lamport=%d", name, L)
 			s.broadcast(joinMessage)
 			s.mu.Unlock()
 
@@ -166,8 +172,9 @@ func (s *ChitChatServer) Chat(stream proto.ChitChat_ChatServer) error {
 			if !utf8.ValidString(message) || utf8.RuneCountInString(message) > 128 {
 				select {
 				case sendChannel <- &proto.ChatMessage{
-					Type:    proto.EventType_ERROR,
-					Content: "Invalid message, Maximum 128 characters.",
+					Type:             proto.EventType_ERROR,
+					Content:          "Invalid message, Maximum 128 characters.",
+					LogicalTimestamp: s.clock.Tick(),
 				}:
 				default:
 					return nil
@@ -175,15 +182,17 @@ func (s *ChitChatServer) Chat(stream proto.ChitChat_ChatServer) error {
 				continue
 			}
 
-			chatMessage := &proto.ChatMessage{
-				Type:    proto.EventType_MESSAGE,
-				Content: name + ": " + message,
-			}
-
 			// Publish logs en gang når modtager besked
 			// Deliver logs en gang pr. modtager. altså 3 clients = 3 linjer
-			log.Printf("[Server] event=PUBLISH client=%s content=%q", name, message)
+			log.Printf("[Server] event=PUBLISH client=%s lamport=%d content=%q", name, received, message)
 			s.mu.Lock()
+			L := s.clock.Tick()
+			chatMessage := &proto.ChatMessage{
+				Type:             proto.EventType_MESSAGE,
+				Content:          name + ": " + message,
+				LogicalTimestamp: L,
+			}
+			log.Printf("[Server] event=BROADCAST client=%s lamport=%d", name, L)
 			s.broadcast(chatMessage)
 			s.mu.Unlock()
 
@@ -199,7 +208,7 @@ func sendServerMessages(stream proto.ChitChat_ChatServer, name string, sendChann
 		if err := stream.Send(message); err != nil {
 			return
 		}
-		log.Printf("[Server] event=DELIVER to=%s content=%q", name, message.GetContent())
+		log.Printf("[Server] event=DELIVER to=%s lamport=%d content=%q", name, message.GetLogicalTimestamp(), message.GetContent())
 	}
 }
 
@@ -212,11 +221,13 @@ func (s *ChitChatServer) cleanup(name string, sendChannel chan *proto.ChatMessag
 	// hvordan klienten forsvinder (LEAVE, EOF eller crash).
 	log.Printf("[Server] event=CLIENT_DISCONNECT client=%s", name)
 
+	L := s.clock.Tick()
 	leaveMessage := &proto.ChatMessage{
-		Type:    proto.EventType_LEAVE,
-		Content: "User: " + name + " has left the chat",
+		Type:             proto.EventType_LEAVE,
+		Content:          fmt.Sprintf("Participant %s left Chit Chat at logical time %d", name, L),
+		LogicalTimestamp: L,
 	}
-	log.Printf("[Server] event=BROADCAST_LEAVE client=%s", name)
+	log.Printf("[Server] event=BROADCAST_LEAVE client=%s lamport=%d", name, L)
 	s.broadcast(leaveMessage)
 	s.mu.Unlock()
 }
