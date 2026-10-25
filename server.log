@@ -1,1 +1,63 @@
-2026/10/25 02:03:27 [Server] event=STARTUP port=5050
+2026/10/25 19:01:13 [Server] event=STARTUP port=5050
+2026/10/25 19:01:48 [Server] event=CLIENT_CONNECT client=Maria lamport=2
+2026/10/25 19:01:48 [Server] event=BROADCAST_JOIN client=Maria lamport=3
+2026/10/25 19:01:48 [Server] event=DELIVER to=Maria lamport=3 content="Participant Maria joined Chit Chat at logical time 3"
+2026/10/25 19:02:02 [Server] event=CLIENT_CONNECT client=Pedro lamport=4
+2026/10/25 19:02:02 [Server] event=BROADCAST_JOIN client=Pedro lamport=5
+2026/10/25 19:02:02 [Server] event=DELIVER to=Pedro lamport=5 content="Participant Pedro joined Chit Chat at logical time 5"
+2026/10/25 19:02:02 [Server] event=DELIVER to=Maria lamport=5 content="Participant Pedro joined Chit Chat at logical time 5"
+2026/10/25 19:02:31 [Server] event=CLIENT_CONNECT client=Bob lamport=6
+2026/10/25 19:02:31 [Server] event=BROADCAST_JOIN client=Bob lamport=7
+2026/10/25 19:02:31 [Server] event=DELIVER to=Bob lamport=7 content="Participant Bob joined Chit Chat at logical time 7"
+2026/10/25 19:02:31 [Server] event=DELIVER to=Maria lamport=7 content="Participant Bob joined Chit Chat at logical time 7"
+2026/10/25 19:02:31 [Server] event=DELIVER to=Pedro lamport=7 content="Participant Bob joined Chit Chat at logical time 7"
+2026/10/25 19:02:44 [Server] event=PUBLISH client=Maria lamport=10 content="Bob, have you seen Discord? We have been writing to you all day!"
+2026/10/25 19:02:44 [Server] event=BROADCAST client=Maria lamport=11
+2026/10/25 19:02:44 [Server] event=DELIVER to=Bob lamport=11 content="Maria: Bob, have you seen Discord? We have been writing to you all day!"
+2026/10/25 19:02:44 [Server] event=DELIVER to=Pedro lamport=11 content="Maria: Bob, have you seen Discord? We have been writing to you all day!"
+2026/10/25 19:02:44 [Server] event=DELIVER to=Maria lamport=11 content="Maria: Bob, have you seen Discord? We have been writing to you all day!"
+2026/10/25 19:02:55 [Server] event=PUBLISH client=Pedro lamport=14 content="He never reads it. We have to hand in tomorrow and the server is not finished."
+2026/10/25 19:02:55 [Server] event=BROADCAST client=Pedro lamport=15
+2026/10/25 19:02:55 [Server] event=DELIVER to=Bob lamport=15 content="Pedro: He never reads it. We have to hand in tomorrow and the server is not finished."
+2026/10/25 19:02:55 [Server] event=DELIVER to=Maria lamport=15 content="Pedro: He never reads it. We have to hand in tomorrow and the server is not finished."
+2026/10/25 19:02:55 [Server] event=DELIVER to=Pedro lamport=15 content="Pedro: He never reads it. We have to hand in tomorrow and the server is not finished."
+2026/10/25 19:03:14 [Server] event=PUBLISH client=Bob lamport=18 content="Sorry, I have not checked Discord. What are we missing?"
+2026/10/25 19:03:14 [Server] event=BROADCAST client=Bob lamport=19
+2026/10/25 19:03:14 [Server] event=DELIVER to=Bob lamport=19 content="Bob: Sorry, I have not checked Discord. What are we missing?"
+2026/10/25 19:03:14 [Server] event=DELIVER to=Maria lamport=19 content="Bob: Sorry, I have not checked Discord. What are we missing?"
+2026/10/25 19:03:14 [Server] event=DELIVER to=Pedro lamport=19 content="Bob: Sorry, I have not checked Discord. What are we missing?"
+2026/10/25 19:03:25 [Server] event=PUBLISH client=Maria lamport=22 content="Logs, report and appendix! The deadline is tomorrow at 12."
+2026/10/25 19:03:25 [Server] event=BROADCAST client=Maria lamport=23
+2026/10/25 19:03:25 [Server] event=DELIVER to=Bob lamport=23 content="Maria: Logs, report and appendix! The deadline is tomorrow at 12."
+2026/10/25 19:03:25 [Server] event=DELIVER to=Maria lamport=23 content="Maria: Logs, report and appendix! The deadline is tomorrow at 12."
+2026/10/25 19:03:25 [Server] event=DELIVER to=Pedro lamport=23 content="Maria: Logs, report and appendix! The deadline is tomorrow at 12."
+2026/10/25 19:03:44 [Server] event=PUBLISH client=Pedro lamport=26 content="Bob, please read Discord. We are pretty angry right now."
+2026/10/25 19:03:44 [Server] event=BROADCAST client=Pedro lamport=27
+2026/10/25 19:03:44 [Server] event=DELIVER to=Bob lamport=27 content="Pedro: Bob, please read Discord. We are pretty angry right now."
+2026/10/25 19:03:44 [Server] event=DELIVER to=Maria lamport=27 content="Pedro: Bob, please read Discord. We are pretty angry right now."
+2026/10/25 19:03:44 [Server] event=DELIVER to=Pedro lamport=27 content="Pedro: Bob, please read Discord. We are pretty angry right now."
+2026/10/25 19:04:06 [Server] event=PUBLISH client=Bob lamport=30 content="I promise to check Discord from now on. I will take the appendix"
+2026/10/25 19:04:06 [Server] event=BROADCAST client=Bob lamport=31
+2026/10/25 19:04:06 [Server] event=DELIVER to=Maria lamport=31 content="Bob: I promise to check Discord from now on. I will take the appendix"
+2026/10/25 19:04:06 [Server] event=DELIVER to=Bob lamport=31 content="Bob: I promise to check Discord from now on. I will take the appendix"
+2026/10/25 19:04:06 [Server] event=DELIVER to=Pedro lamport=31 content="Bob: I promise to check Discord from now on. I will take the appendix"
+2026/10/25 19:05:28 [Server] event=DELIVER to=Maria lamport=35 content="Invalid message, Maximum 128 characters."
+2026/10/25 19:05:50 [Server] event=PUBLISH client=Maria lamport=38 content="That was too long. Short version. Read Discord, Bob!"
+2026/10/25 19:05:50 [Server] event=BROADCAST client=Maria lamport=39
+2026/10/25 19:05:50 [Server] event=DELIVER to=Bob lamport=39 content="Maria: That was too long. Short version. Read Discord, Bob!"
+2026/10/25 19:05:50 [Server] event=DELIVER to=Maria lamport=39 content="Maria: That was too long. Short version. Read Discord, Bob!"
+2026/10/25 19:05:50 [Server] event=DELIVER to=Pedro lamport=39 content="Maria: That was too long. Short version. Read Discord, Bob!"
+2026/10/25 19:06:58 [Server] event=CLIENT_DISCONNECT client=Bob
+2026/10/25 19:06:58 [Server] event=BROADCAST_LEAVE client=Bob lamport=43
+2026/10/25 19:06:58 [Server] event=DELIVER to=Maria lamport=43 content="Participant Bob left Chit Chat at logical time 43"
+2026/10/25 19:06:58 [Server] event=DELIVER to=Pedro lamport=43 content="Participant Bob left Chit Chat at logical time 43"
+2026/10/25 19:07:31 [Server] event=PUBLISH client=Pedro lamport=46 content="Bob is gone again. See you on Discord tomorrow morning."
+2026/10/25 19:07:31 [Server] event=BROADCAST client=Pedro lamport=47
+2026/10/25 19:07:31 [Server] event=DELIVER to=Maria lamport=47 content="Pedro: Bob is gone again. See you on Discord tomorrow morning."
+2026/10/25 19:07:31 [Server] event=DELIVER to=Pedro lamport=47 content="Pedro: Bob is gone again. See you on Discord tomorrow morning."
+2026/10/25 19:08:38 [Server] event=CLIENT_DISCONNECT client=Maria
+2026/10/25 19:08:38 [Server] event=BROADCAST_LEAVE client=Maria lamport=51
+2026/10/25 19:08:38 [Server] event=DELIVER to=Pedro lamport=51 content="Participant Maria left Chit Chat at logical time 51"
+2026/10/25 19:08:43 [Server] event=CLIENT_DISCONNECT client=Pedro
+2026/10/25 19:08:43 [Server] event=BROADCAST_LEAVE client=Pedro lamport=55
+2026/10/25 19:08:52 [Server] event=SHUTDOWN port=5050 lamport=55
