@@ -1,0 +1,21 @@
+2026/10/25 19:01:48.863329 [Client Maria] event=CONNECT addr=localhost:5050
+2026/10/25 19:01:48.885870 [Client Maria] event=JOIN local=1
+2026/10/25 19:01:48.887469 [Client Maria] event=DELIVER type=JOIN lamport=3 local=4 content="Participant Maria joined Chit Chat at logical time 3"
+2026/10/25 19:02:02.986900 [Client Maria] event=DELIVER type=JOIN lamport=5 local=6 content="Participant Pedro joined Chit Chat at logical time 5"
+2026/10/25 19:02:31.517101 [Client Maria] event=DELIVER type=JOIN lamport=7 local=8 content="Participant Bob joined Chit Chat at logical time 7"
+2026/10/25 19:02:44.905446 [Client Maria] event=PUBLISH local=9 content="Bob, have you seen Discord? We have been writing to you all day!"
+2026/10/25 19:02:44.906488 [Client Maria] event=DELIVER type=MESSAGE lamport=11 local=12 content="Maria: Bob, have you seen Discord? We have been writing to you all day!"
+2026/10/25 19:02:55.189813 [Client Maria] event=DELIVER type=MESSAGE lamport=15 local=16 content="Pedro: He never reads it. We have to hand in tomorrow and the server is not finished."
+2026/10/25 19:03:14.818771 [Client Maria] event=DELIVER type=MESSAGE lamport=19 local=20 content="Bob: Sorry, I have not checked Discord. What are we missing?"
+2026/10/25 19:03:25.916836 [Client Maria] event=PUBLISH local=21 content="Logs, report and appendix! The deadline is tomorrow at 12."
+2026/10/25 19:03:25.917902 [Client Maria] event=DELIVER type=MESSAGE lamport=23 local=24 content="Maria: Logs, report and appendix! The deadline is tomorrow at 12."
+2026/10/25 19:03:44.132351 [Client Maria] event=DELIVER type=MESSAGE lamport=27 local=28 content="Pedro: Bob, please read Discord. We are pretty angry right now."
+2026/10/25 19:04:06.428274 [Client Maria] event=DELIVER type=MESSAGE lamport=31 local=32 content="Bob: I promise to check Discord from now on. I will take the appendix"
+2026/10/25 19:05:28.373513 [Client Maria] event=PUBLISH local=33 content="This is important Bob, you have to read Discord every day, otherwise we cannot coordinate anything, and then we will never hand in on time. It is really annoying"
+2026/10/25 19:05:28.376117 [Client Maria] event=DELIVER type=ERROR lamport=35 local=36 content="Invalid message, Maximum 128 characters."
+2026/10/25 19:05:50.191521 [Client Maria] event=PUBLISH local=37 content="That was too long. Short version. Read Discord, Bob!"
+2026/10/25 19:05:50.192579 [Client Maria] event=DELIVER type=MESSAGE lamport=39 local=40 content="Maria: That was too long. Short version. Read Discord, Bob!"
+2026/10/25 19:06:58.488093 [Client Maria] event=DELIVER type=LEAVE lamport=43 local=44 content="Participant Bob left Chit Chat at logical time 43"
+2026/10/25 19:07:31.641724 [Client Maria] event=DELIVER type=MESSAGE lamport=47 local=48 content="Pedro: Bob is gone again. See you on Discord tomorrow morning."
+2026/10/25 19:08:38.461819 [Client Maria] event=LEAVE local=49
+2026/10/25 19:08:38.463909 [Client Maria] event=DISCONNECT
