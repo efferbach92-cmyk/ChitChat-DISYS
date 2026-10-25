@@ -7,6 +7,8 @@ import (
 	"sync"
 	"unicode/utf8"
 	"os"
+	"os/signal"
+	"syscall"
 
 	proto "github.com/efferbach92-cmyk/ChitChat-DISYS/grpc"
 	"google.golang.org/grpc"
@@ -47,6 +49,23 @@ func (s *ChitChatServer) start_server() {
 	proto.RegisterChitChatServer(grpcServer, s)
 
 	log.Printf("[Server] event=STARTUP port=5050")
+
+	// opretter en kanal, som operativsystemets signal bliver sendt.
+	// samme mønster som klienten.
+	stop := make (chan os.Signal, 1)
+
+
+	// sender Ctrl + C og SIGTERM til kanal istedet for at dræbe program.
+	// samme som klinten.
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		<-stop // her venter, indtil Ctrl+C trykkes
+		log.Printf("[Server] event=SHUTDOWN port=5050") //logger luk til term og server log
+
+		grpcServer.Stop() // lukker serv, så return uden fejl.
+	}() // kører den
+
 
 	err = grpcServer.Serve(listener)
 
@@ -97,6 +116,7 @@ func (s *ChitChatServer) Chat(stream proto.ChitChat_ChatServer) error {
 				Type:    proto.EventType_JOIN,
 				Content: "User: " + name + " joined the chat",
 			}
+			log.Printf("[Server] event=BROADCAST_JOIN client=%s", name)
 			s.mu.Lock()
 			for _, sendChannel := range s.Users {
 				sendChannel <- joinMessage
