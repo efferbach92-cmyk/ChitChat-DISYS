@@ -146,7 +146,7 @@ func (s *ChitChatServer) Chat(stream proto.ChitChat_ChatServer) error {
 
 			defer s.cleanup(name, sendChannel)
 	
-			go sendServerMessages(stream, sendChannel)
+			go sendServerMessages(stream, name, sendChannel)
 
 			joinMessage := &proto.ChatMessage{
 				Type:    proto.EventType_JOIN,
@@ -194,11 +194,12 @@ func (s *ChitChatServer) Chat(stream proto.ChitChat_ChatServer) error {
 }
 
 // sender beskeder fra serveren til brugeren.
-func sendServerMessages(stream proto.ChitChat_ChatServer, sendChannel chan *proto.ChatMessage) {
+func sendServerMessages(stream proto.ChitChat_ChatServer, name string, sendChannel chan *proto.ChatMessage) {
 	for message := range sendChannel {
 		if err := stream.Send(message); err != nil {
 			return
 		}
+		log.Printf("[Server] event=DELIVER to=%s content=%q", name, message.GetContent())
 	}
 }
 
@@ -224,7 +225,6 @@ func (s *ChitChatServer) broadcast(message *proto.ChatMessage) {
 	for name, client := range s.Users {
 		select {
 		case client.sendChannel <- message:
-			log.Printf("[Server] event=DELIVER to=%s content=%q", name, message.GetContent())
 		default:
 			log.Printf("[Server] event=BUFFER_FULL client=%s", name)
 			select {
