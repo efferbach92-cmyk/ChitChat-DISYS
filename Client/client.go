@@ -70,7 +70,7 @@ func main() {
 	logger.Printf("[Client %s] event=CONNECT addr=%s", *name, *addr)
 
 	t := clock.Tick()
-	if err := stream.Send(&proto.ClientMessage{Type: proto.EventType_JOIN, Name: *name}); err != nil {
+	if err := stream.Send(&proto.ClientMessage{Type: proto.EventType_JOIN, Name: *name, LogicalTimestamp: t}); err != nil {
 		log.Fatalf("[Client %s] event=ERROR msg=%v", *name, err)
 	}
 	logger.Printf("[Client %s] event=JOIN local=%d", *name, t)
@@ -111,7 +111,7 @@ func main() {
 
 	leave := func() {
 		t := clock.Tick()
-		stream.Send(&proto.ClientMessage{Type: proto.EventType_LEAVE, Name: *name})
+		stream.Send(&proto.ClientMessage{Type: proto.EventType_LEAVE, Name: *name, LogicalTimestamp: t})
 		stream.CloseSend()
 		logger.Printf("[Client %s] event=LEAVE local=%d", *name, t)
 		select {
@@ -133,7 +133,7 @@ func main() {
 				continue
 			}
 			t := clock.Tick()
-			if err := stream.Send(&proto.ClientMessage{Type: proto.EventType_MESSAGE, Name: *name, Content: line}); err != nil {
+			if err := stream.Send(&proto.ClientMessage{Type: proto.EventType_MESSAGE, Name: *name, Content: line, LogicalTimestamp: t}); err != nil {
 				logger.Printf("[Client %s] event=ERROR msg=%v", *name, err)
 				return
 			}
