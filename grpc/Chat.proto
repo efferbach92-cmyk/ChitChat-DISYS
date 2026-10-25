@@ -13,6 +13,7 @@ message ClientMessage {
     EventType type = 1; 
     string name = 2; 
     string content = 3; 
+    int64 logical_timestamp = 4; 
 }
 
 message ChatMessage {
